@@ -14,7 +14,7 @@ pi = np.pi
 tpi = 2.0*pi
 fpi = 4.0*pi
 #functions
-def Q(gamma,x):
+def Q_old(gamma,x):
     gamma1 = gamma**2/(1.0 + gamma**2)
     gamma2 = 1.0 - gamma1
     N = 1000
@@ -26,12 +26,38 @@ def Q(gamma,x):
     Q = Q*np.sqrt(0.5*pi/ellipk(gamma2))
     return Q
 #
+def Q(gamma,x):
+    gamma1 = gamma**2/(1.0 + gamma**2)
+    gamma2 = 1.0 - gamma1
+    N = 10000
+    epsconv = 1.0e-8
+    Q = 0.0
+    for n in range(N):
+        arg1 = 0.5*pi**2*(math.floor(x + 1) - x + float(n))/(ellipk(gamma2)*ellipe(gamma2))
+        arg2 = np.sqrt(arg1)
+        dQ = np.exp(-float(n)*pi*(ellipk(gamma1) - ellipe(gamma1))/ellipe(gamma2))*dawsn(arg2)
+        Q = Q + dQ
+        if (dQ/Q < epsconv):
+            break
+        if (n == N-1):
+            char = 'WARNING!: Maximum integer, '+str(N)+', in Q function is not enough.'
+            print(char)
+    Q = Q*np.sqrt(0.5*pi/ellipk(gamma2))
+    return Q
+#
+#
 def get_gamma_x(m,delta,omega,F):
     gamma = omega*np.sqrt(m*delta)/F
     gamma1 = gamma**2/(1.0 + gamma**2)
     gamma2 = 1.0 - gamma1
     x = 2.0*delta*ellipe(gamma2)/(pi*omega*np.sqrt(gamma1))
     return gamma, gamma1, gamma2, x
+#
+def get_W_old(m,delta,omega,F):
+    gamma, gamma1, gamma2, x = get_gamma_x(m,delta,omega,F)
+    W = 2.0*2.0*omega/(9.0*pi)*(m*omega/np.sqrt(gamma1))**1.5*\
+    Q_old(gamma,x)*np.exp(-pi*math.floor(x + 1)*(ellipk(gamma1) - ellipe(gamma1))/ellipe(gamma2))
+    return W
 #
 def get_W(m,delta,omega,F):
     gamma, gamma1, gamma2, x = get_gamma_x(m,delta,omega,F)
